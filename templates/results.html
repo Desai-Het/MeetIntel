@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Results — TranscriptMind</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body class="results-page">
+
+  <div class="noise"></div>
+
+  <header class="site-header">
+    <div class="logo">
+      <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;color:inherit">
+        <span class="logo-mark">◈</span>
+        <span class="logo-text">TranscriptMind</span>
+      </a>
+    </div>
+    <div class="header-actions">
+      <span class="entity-badge" id="entity-count-badge">— entities</span>
+      <a href="/export" class="export-btn" id="export-btn">⬇ Export Summary</a>
+      <a href="/" class="new-btn">+ New Analysis</a>
+    </div>
+  </header>
+
+  <div class="results-layout" id="results-layout">
+
+    <!-- Left: Dashboard -->
+    <div class="dashboard" id="dashboard">
+
+      <section class="dash-section" id="section-speakers">
+        <h2 class="section-title"><span class="section-icon">🎤</span> Speakers</h2>
+        <div class="speakers-grid" id="speakers-grid">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </section>
+
+      <section class="dash-section" id="section-topics">
+        <h2 class="section-title"><span class="section-icon">💡</span> Key Topics</h2>
+        <div class="topics-wrap" id="topics-wrap">
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+          <div class="skeleton-pill"></div>
+        </div>
+      </section>
+
+      <section class="dash-section" id="section-decisions">
+        <h2 class="section-title"><span class="section-icon">✅</span> Decisions Made</h2>
+        <div class="decision-list" id="decision-list">
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+        </div>
+      </section>
+
+      <section class="dash-section" id="section-actions">
+        <h2 class="section-title"><span class="section-icon">📋</span> Action Items</h2>
+        <div class="action-table-wrap">
+          <table class="action-table" id="action-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Task</th>
+                <th>Owner</th>
+                <th>Deadline</th>
+              </tr>
+            </thead>
+            <tbody id="action-tbody">
+              <tr><td colspan="4"><div class="skeleton-row"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Right: Visualization -->
+    <div class="viz-panel" id="viz-panel">
+      <div class="viz-header">
+        <h2 class="section-title" style="margin:0"><span class="section-icon">🔍</span> Highlighted Transcript</h2>
+        <div class="viz-legend">
+          <span class="legend-dot speaker-dot"></span>speaker
+          <span class="legend-dot topic-dot"></span>topic
+          <span class="legend-dot decision-dot"></span>decision
+          <span class="legend-dot action-dot"></span>action item
+        </div>
+      </div>
+      <iframe id="viz-frame" class="viz-frame" srcdoc="<p style='padding:2rem;color:#888;font-family:sans-serif'>Loading visualization…</p>"></iframe>
+    </div>
+
+  </div>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
