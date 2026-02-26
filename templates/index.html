@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transcript Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <div class="noise"></div>
+
+  <header class="site-header">
+    <div class="logo">
+      <span class="logo-mark">◈</span>
+      <span class="logo-text">TranscriptMind</span>
+    </div>
+    <div class="header-tag">Powered by Gemini + LangExtract</div>
+  </header>
+
+  <main class="hero">
+    <div class="hero-text">
+      <h1>Turn <em>conversations</em><br>into <em>clarity</em>.</h1>
+      <p class="subtitle">Paste or upload any meeting or interview transcript. Extract speakers, decisions, topics, and action items — instantly.</p>
+    </div>
+
+    <div class="input-card">
+      <!-- Tab switcher -->
+      <div class="tab-bar">
+        <button class="tab active" data-tab="paste">Paste Text</button>
+        <button class="tab" data-tab="upload">Upload File</button>
+      </div>
+
+      <form id="analyze-form" enctype="multipart/form-data">
+
+        <!-- Paste panel -->
+        <div class="tab-panel active" id="panel-paste">
+          <textarea
+            name="transcript_text"
+            id="transcript-text"
+            placeholder="Paste your transcript here...&#10;&#10;SARAH: Let's move the launch to Q3.&#10;JAMES: Agreed. I'll send the roadmap by Friday."
+            spellcheck="false"
+          ></textarea>
+          <div class="char-count"><span id="char-count">0</span> characters</div>
+        </div>
+
+        <!-- Upload panel -->
+        <div class="tab-panel" id="panel-upload">
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-icon">⬆</div>
+            <p class="drop-label">Drop your <code>.txt</code> file here</p>
+            <p class="drop-sub">or <label for="file-input" class="file-link">browse to upload</label></p>
+            <input type="file" name="file" id="file-input" accept=".txt" hidden />
+            <div class="file-selected" id="file-selected"></div>
+          </div>
+        </div>
+
+        <button type="submit" class="analyze-btn" id="analyze-btn">
+          <span class="btn-text">Analyze Transcript</span>
+          <span class="btn-spinner" hidden>
+            <span class="spinner"></span> Processing…
+          </span>
+        </button>
+
+      </form>
+
+      <div class="error-box" id="error-box" hidden></div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Built with LangExtract · Gemini 2.5 Flash · Flask</p>
+  </footer>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
