@@ -206,7 +206,7 @@ function renderTopics(topics) {
   if (!wrap) return;
 
   if (!topics.length) {
-    wrap.innerHTML = '<p class="empty-state">No key topics identified.</p>';
+    wrap.innerHTML = '<p class="empty-state">No key topics identified!</p>';
     return;
   }
 
