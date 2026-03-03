@@ -1,5 +1,5 @@
 /* ============================================================
-   TranscriptMind — script.js
+   MeetIntel — script.js
    Handles: tabs, file drop, form submit, results rendering
    ============================================================ */
 
@@ -206,7 +206,7 @@ function renderTopics(topics) {
   if (!wrap) return;
 
   if (!topics.length) {
-    wrap.innerHTML = '<p class="empty-state">No key topics identified.</p>';
+    wrap.innerHTML = '<p class="empty-state">No key topics identified!</p>';
     return;
   }
 
