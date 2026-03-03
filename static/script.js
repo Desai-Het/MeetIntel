@@ -1,5 +1,5 @@
 /* ============================================================
-   TranscriptMind — script.js
+   MeetIntel — script.js
    Handles: tabs, file drop, form submit, results rendering
    ============================================================ */
 
