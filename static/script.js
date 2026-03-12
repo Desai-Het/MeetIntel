@@ -82,6 +82,8 @@ function initIndexPage() {
   const analyzeBtn = document.getElementById("analyze-btn");
   const errorBox = document.getElementById("error-box");
 
+  let analysisProgressInterval = null;
+
   analyzeForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -127,9 +129,41 @@ function initIndexPage() {
   function setLoading(loading) {
     const btnText = analyzeBtn.querySelector(".btn-text");
     const btnSpinner = analyzeBtn.querySelector(".btn-spinner");
+    const progressSpan = analyzeBtn.querySelector(".progress-percent");
+    const progressFill = document.getElementById("btn-progress-fill");
+    
     analyzeBtn.disabled = loading;
     btnText.hidden = loading;
     btnSpinner.hidden = !loading;
+
+    if (loading) {
+      analyzeBtn.classList.add("is-loading");
+      let progress = 0;
+      if (progressSpan) progressSpan.textContent = ` 0%`;
+      if (progressFill) progressFill.style.width = `0%`;
+      
+      // Clear any existing interval
+      if (analysisProgressInterval) clearInterval(analysisProgressInterval);
+      
+      // Simulate progress up to 90%
+      analysisProgressInterval = setInterval(() => {
+        if (progress < 90) {
+          // Faster at start, slower as it gets higher
+          const inc = progress < 50 ? 5 : (progress < 80 ? 2 : 1);
+          progress += inc;
+          if (progress > 90) progress = 90;
+          if (progressSpan) progressSpan.textContent = ` ${progress}%`;
+          if (progressFill) progressFill.style.width = `${progress}%`;
+        }
+      }, 400);
+    } else {
+      if (analysisProgressInterval) {
+        clearInterval(analysisProgressInterval);
+        analysisProgressInterval = null;
+      }
+      analyzeBtn.classList.remove("is-loading");
+      if (progressFill) progressFill.style.width = `0%`;
+    }
   }
 
   function showError(msg) {

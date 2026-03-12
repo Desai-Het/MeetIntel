@@ -279,6 +279,9 @@ textarea::placeholder {
   width: calc(100% - 2.5rem);
   margin: 0 1.25rem 1.25rem;
   padding: 0.9rem;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
   background: var(--accent);
   color: #0f0e0d;
   border: none;
@@ -290,6 +293,30 @@ textarea::placeholder {
   text-transform: uppercase;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.15s;
+}
+
+.progress-percent {
+  display: inline-block;
+  min-width: 2.2em;
+  text-align: right;
+  font-weight: 600;
+}
+
+.btn-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--accent); /* Solid bright gold fill */
+  transition: width 0.4s ease;
+  z-index: 0;
+}
+
+.btn-text,
+.btn-spinner {
+  position: relative;
+  z-index: 2;
 }
 
 .analyze-btn:hover {
@@ -305,6 +332,11 @@ textarea::placeholder {
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+}
+
+.analyze-btn.is-loading:disabled {
+  opacity: 1; /* Stops fading when analyzing */
+  background: var(--accent-dim); /* Dark solid gold empty track */
 }
 
 /* Spinner */

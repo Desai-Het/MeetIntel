@@ -4,6 +4,9 @@ from exporter import generate_markdown
 import io
 import json
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -85,11 +88,14 @@ def summarize():
         Action Items for {name}: {json.dumps(speaker_actions)}
         
         Focus on:
-        1. What they need to do (Action Items).
-        2. Deadlines for those tasks.
-        3. Simple follow-up advice after completion.
+        1. What they need to do (Action Items) with its Deadline.
+        2. Simple follow-up advice after completion.
+        
         
         Keep it under 100 words. Format as a personalized message.
+        Always give in numberd pointers.
+        Don't include Subject line for the email.
+        No greetings and no valediction (closing) and no well-wishes at the end of email.
         """
 
         try:
@@ -114,21 +120,49 @@ def send_emails():
 
     summaries = json.loads(summaries_raw)
     recipients = request.json.get("recipients", {}) # { "SpeakerName": "email@example.com" }
+    
+    # Load SMTP credentials
+    smtp_server = os.getenv("SMTP_SERVER")
+    smtp_port = os.getenv("SMTP_PORT")
+    email_user = os.getenv("EMAIL_USER")
+    email_password_raw = os.getenv("EMAIL_PASSWORD", "")
+    
+    if not all([smtp_server, smtp_port, email_user, email_password_raw]):
+        return jsonify({"error": "Email credentials not properly configured in .env file."}), 500
+        
+    # Sanitize password (remove spaces)
+    email_password = email_password_raw.replace(" ", "")
 
     sent_count = 0
-    for name, email in recipients.items():
-        if email and name in summaries:
-            # MOCK EMAIL SENDING
-            print(f"--- SENDING EMAIL TO {email} ---")
-            print(f"Subject: Your Meeting Summary - MeetIntel")
-            print(f"Content: {summaries[name]}")
-            print("---------------------------------")
-            sent_count += 1
+    try:
+        # Establish SMTP connection
+        server = smtplib.SMTP(smtp_server, int(smtp_port))
+        server.starttls()
+        server.login(email_user, email_password)
+        
+        for name, email_addr in recipients.items():
+            if email_addr and name in summaries:
+                # Construct email
+                msg = MIMEMultipart()
+                msg["From"] = f"MeetIntel <{email_user}>"
+                msg["To"] = email_addr
+                msg["Subject"] = "Your Meeting Summary - MeetIntel"
+                
+                body = f"Hi {name},\n\nHere is your personalized summary from the recent meeting:\n\n{summaries[name]}\n\nBest regards,\nMeetIntel Assistant"
+                msg.attach(MIMEText(body, "plain"))
+                
+                # Send email
+                server.send_message(msg)
+                sent_count += 1
+                
+        server.quit()
+    except Exception as e:
+        return jsonify({"error": f"Failed to send emails: {str(e)}"}), 500
 
     if sent_count == 0:
         return jsonify({"error": "No valid email addresses provided."}), 400
 
-    return jsonify({"success": True, "message": f"Successfully drafted/sent {sent_count} emails."})
+    return jsonify({"success": True, "message": f"Successfully sent {sent_count} emails."})
 
 
 if __name__ == "__main__":
