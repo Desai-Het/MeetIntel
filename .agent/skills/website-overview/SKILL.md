@@ -1,3 +1,8 @@
+---
+name: website-overview
+description: Provides a comprehensive overview of the MeetIntel application, documenting its functionality, aesthetic theme, typography, and technical stack. This serves as a reference for future development and design consistency and defines what to take care of while creating new features or modifying existing ones.
+---
+
 # MeetIntel Website Overview Skill
 
 ## Description
@@ -41,6 +46,9 @@ The website follows an **"Editorial Dark"** aesthetic, emphasizing premium quali
 - **AI Integration**: LangExtract with Gemini 2.5 Flash
 - **Frontend**: Vanilla HTML5, CSS3, and JavaScript
 - **State Management**: Flask session for temporary data storage and export.
+
+## What not to do
+- Do not change the coding style of the web-application.
 
 ## Key Files
 - `MeetIntel_app.py`: Main Flask server and route handlers.

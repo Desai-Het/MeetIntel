@@ -153,12 +153,12 @@ function initResultsPage() {
   const vizHTML = sessionStorage.getItem("vizHTML");
 
   if (!raw) {
-    // If someone lands here directly without data, redirect home
     window.location.href = "/";
     return;
   }
 
   const data = JSON.parse(raw);
+  window.currentAnalysis = data; // Store globally for modal access
   renderDashboard(data);
 
   if (vizHTML) {
@@ -166,11 +166,161 @@ function initResultsPage() {
     frame.srcdoc = vizHTML;
   }
 
-  // Entity count badge
   const badge = document.getElementById("entity-count-badge");
   if (badge && data.total_entities !== undefined) {
     badge.textContent = `${data.total_entities} entities`;
   }
+
+  // --- New Logic: Summarize & Email ---
+  const summarizeBtn = document.getElementById("summarize-btn");
+  const emailBtn = document.getElementById("email-speakers-btn");
+  const infoTooltip = document.querySelector(".info-tooltip");
+
+  // Check if already summarized in this session
+  if (sessionStorage.getItem("isSummarized")) {
+    emailBtn.disabled = false;
+    if (infoTooltip) infoTooltip.classList.add("hidden");
+  }
+
+  summarizeBtn.addEventListener("click", handleSummarize);
+  emailBtn.addEventListener("click", openEmailModal);
+
+  // Modal events
+  document.getElementById("close-modal").addEventListener("click", closeEmailModal);
+  document.getElementById("email-form").addEventListener("submit", handleSendEmails);
+  document.getElementById("email-modal-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "email-modal-overlay") closeEmailModal();
+  });
+}
+
+async function handleSummarize() {
+  const btn = document.getElementById("summarize-btn");
+  const emailBtn = document.getElementById("email-speakers-btn");
+  const infoTooltip = document.querySelector(".info-tooltip");
+
+  if (sessionStorage.getItem("isSummarized")) {
+    showToast("Transcript already summarized, Ready to send personalized emails!");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '✨ Summarizing...';
+
+  try {
+    const response = await fetch("/summarize", { method: "POST" });
+    const result = await response.json();
+
+    if (result.success) {
+      sessionStorage.setItem("isSummarized", "true");
+      emailBtn.disabled = false;
+      if (infoTooltip) infoTooltip.classList.add("hidden");
+      showToast("Summary generated successfully!");
+      btn.innerHTML = '✨ Summarized';
+    } else {
+      showToast("Summarization failed: " + result.error);
+      btn.innerHTML = '✨ Summarize';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    showToast("Network error. Could not summarize.");
+    btn.innerHTML = '✨ Summarize';
+    btn.disabled = false;
+  }
+}
+
+function openEmailModal() {
+  const overlay = document.getElementById("email-modal-overlay");
+  const list = document.getElementById("speaker-emails-list");
+  const speakers = window.currentAnalysis.speakers || [];
+
+  list.innerHTML = speakers.map(s => `
+    <div class="email-row">
+      <label>${escHtml(s.name)} (${escHtml(s.role)})</label>
+      <input type="email" class="email-input" data-speaker="${escHtml(s.name)}" placeholder="Enter Email-ID">
+    </div>
+  `).join("");
+
+  overlay.classList.add("show");
+
+  // Add validation listeners
+  const inputs = list.querySelectorAll(".email-input");
+  inputs.forEach(input => {
+    input.addEventListener("input", validateEmailForm);
+  });
+
+  validateEmailForm();
+}
+
+function closeEmailModal() {
+  document.getElementById("email-modal-overlay").classList.remove("show");
+}
+
+function validateEmailForm() {
+  const inputs = document.querySelectorAll(".email-input");
+  const submitBtn = document.getElementById("send-emails-submit");
+  let atLeastOne = false;
+
+  inputs.forEach(input => {
+    if (input.value.trim() !== "") {
+      if (input.checkValidity()) {
+        atLeastOne = true;
+        input.classList.remove("error");
+      } else {
+        input.classList.add("error");
+      }
+    } else {
+      input.classList.remove("error");
+    }
+  });
+
+  submitBtn.disabled = !atLeastOne;
+}
+
+async function handleSendEmails(e) {
+  e.preventDefault();
+  const submitBtn = document.getElementById("send-emails-submit");
+  const inputs = document.querySelectorAll(".email-input");
+  const recipients = {};
+
+  inputs.forEach(input => {
+    const email = input.value.trim();
+    if (email && input.checkValidity()) {
+      recipients[input.dataset.speaker] = email;
+    }
+  });
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending...';
+
+  try {
+    const response = await fetch("/send-emails", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ recipients })
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      showToast("Email sent successfully!");
+      closeEmailModal();
+    } else {
+      showToast("Error: " + result.error);
+    }
+  } catch (err) {
+    showToast("Network error. Could not send emails.");
+  } finally {
+    submitBtn.textContent = 'Send';
+    submitBtn.disabled = false;
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.hidden = false;
+  setTimeout(() => {
+    toast.hidden = true;
+  }, 4000);
 }
 
 
@@ -203,6 +353,9 @@ function renderSpeakers(speakers) {
 
 function renderTopics(topics) {
   const wrap = document.getElementById("topics-wrap");
+  const externalMoreBtn = document.getElementById("topics-more-btn");
+  if (externalMoreBtn) externalMoreBtn.remove(); // Clean up old static button
+
   if (!wrap) return;
 
   if (!topics.length) {
@@ -210,11 +363,96 @@ function renderTopics(topics) {
     return;
   }
 
-  wrap.innerHTML = topics.map(t => {
-    const cls = t.importance === "high" ? "topic-chip high" : "topic-chip";
-    return `<span class="${cls}">${escHtml(t.text)}</span>`;
-  }).join("");
+  wrap.dataset.allTopics = JSON.stringify(topics);
+  wrap.dataset.expanded = "false";
+  renderTopicsFlow();
 }
+
+function renderTopicsFlow() {
+  const wrap = document.getElementById("topics-wrap");
+  if (!wrap) return;
+  const topics = JSON.parse(wrap.dataset.allTopics || "[]");
+  const isExpanded = wrap.dataset.expanded === "true";
+
+  wrap.innerHTML = ""; // clear
+
+  if (isExpanded) {
+    // Render all
+    wrap.innerHTML = topics.map(t => {
+      const cls = t.importance === "high" ? "topic-chip high" : "topic-chip";
+      return `<span class="${cls}">${escHtml(t.text)}</span>`;
+    }).join("");
+
+    // Check if we actually need a less button
+    const btn = document.createElement("button");
+    btn.className = "topics-more-btn inline";
+    btn.textContent = "...less";
+    btn.onclick = () => { wrap.dataset.expanded = "false"; renderTopicsFlow(); };
+    wrap.appendChild(btn);
+    return;
+  }
+
+  // Determine if it fits in 2 rows, inserting the inline "...more" button
+  const btn = document.createElement("button");
+  btn.className = "topics-more-btn inline";
+  btn.textContent = "...more";
+  btn.onclick = () => { wrap.dataset.expanded = "true"; renderTopicsFlow(); };
+
+  let firstTop = -1;
+  let rowCount = 1;
+  let currentTop = -1;
+
+  for (let i = 0; i < topics.length; i++) {
+    const t = topics[i];
+    const span = document.createElement("span");
+    const cls = t.importance === "high" ? "topic-chip high" : "topic-chip";
+    span.className = cls;
+    span.textContent = t.text;
+    wrap.appendChild(span);
+
+    // Add button to check layout footprint
+    wrap.appendChild(btn);
+
+    if (firstTop === -1) {
+      firstTop = span.offsetTop;
+      currentTop = firstTop;
+    }
+
+    let spanTop = span.offsetTop;
+    if (spanTop > currentTop + 5) {
+      rowCount++;
+      currentTop = spanTop;
+    }
+
+    let btnTop = btn.offsetTop;
+    let expectedBtnRow = rowCount;
+    if (btnTop > currentTop + 5) {
+      expectedBtnRow = rowCount + 1;
+    }
+
+    if (expectedBtnRow > 2) {
+      // Span plus button overflowed to the 3rd row. 
+      span.remove(); // The span won't fit if we need the more button.
+      break;
+    }
+
+    if (i === topics.length - 1) {
+      // Everything fit! No button needed.
+      btn.remove();
+    } else {
+      btn.remove(); // Remove btn so next iteration can append it properly at the end
+    }
+  }
+}
+
+// Window resize listener to reflow truncated items
+window.addEventListener("resize", () => {
+  const wrap = document.getElementById("topics-wrap");
+  if (wrap && wrap.dataset.allTopics && wrap.dataset.expanded === "false") {
+    clearTimeout(wrap.resizeTimer);
+    wrap.resizeTimer = setTimeout(() => renderTopicsFlow(), 100);
+  }
+});
 
 
 function renderDecisions(decisions) {
