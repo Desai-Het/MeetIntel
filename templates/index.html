@@ -6,7 +6,7 @@
   <title>Transcript Analyzer</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css" />
+  <link rel="stylesheet" href="/static/style.css?v=8" />
 </head>
 <body>
 
@@ -58,9 +58,10 @@
         </div>
 
         <button type="submit" class="analyze-btn" id="analyze-btn">
+          <span class="btn-progress-fill" id="btn-progress-fill"></span>
           <span class="btn-text">Analyze Transcript</span>
           <span class="btn-spinner" hidden>
-            <span class="spinner"></span> Processing…
+            <span class="spinner"></span> Analyzing<span class="progress-percent"></span>...
           </span>
         </button>
 
@@ -74,6 +75,6 @@
     <p>Built with LangExtract · Gemini 2.5 Flash · Flask</p>
   </footer>
 
-  <script src="/static/script.js"></script>
+  <script src="/static/script.js?v=8"></script>
 </body>
 </html>
