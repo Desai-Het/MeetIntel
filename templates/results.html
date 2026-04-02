@@ -25,7 +25,6 @@
     </div>
     <div class="header-actions">
       <span class="entity-badge" id="entity-count-badge">— entities</span>
-      <button class="summarize-btn" id="summarize-btn">✨ Summarize</button>
       <a href="/export" class="export-btn" id="export-btn">⬇ Export Summary</a>
       <a href="/" class="new-btn">+ New Analysis</a>
     </div>
@@ -43,12 +42,10 @@
           <div class="skeleton-card"></div>
         </div>
         <div class="speaker-actions-footer">
-          <button class="email-speakers-btn" id="email-speakers-btn" disabled>
-            Email Speakers
+          <button class="email-speakers-btn" id="email-speakers-btn">
+            <div class="btn-progress-fill" id="email-btn-progress"></div>
+            <span class="btn-text">Email Speakers</span>
           </button>
-          <div class="info-tooltip"
-            data-tooltip="To email all the speakers first summarize the transcript by clicking on Summarize button on the top right header bar">
-            ?</div>
         </div>
         <div class="section-divider"></div>
       </section>
