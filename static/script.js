@@ -205,19 +205,10 @@ function initResultsPage() {
     badge.textContent = `${data.total_entities} entities`;
   }
 
-  // --- New Logic: Summarize & Email ---
-  const summarizeBtn = document.getElementById("summarize-btn");
+  // --- New Logic: Integrated Summarize & Email ---
   const emailBtn = document.getElementById("email-speakers-btn");
-  const infoTooltip = document.querySelector(".info-tooltip");
 
-  // Check if already summarized in this session
-  if (sessionStorage.getItem("isSummarized")) {
-    emailBtn.disabled = false;
-    if (infoTooltip) infoTooltip.classList.add("hidden");
-  }
-
-  summarizeBtn.addEventListener("click", handleSummarize);
-  emailBtn.addEventListener("click", openEmailModal);
+  emailBtn.addEventListener("click", handleEmailBtnClick);
 
   // Modal events
   document.getElementById("close-modal").addEventListener("click", closeEmailModal);
@@ -227,38 +218,72 @@ function initResultsPage() {
   });
 }
 
-async function handleSummarize() {
-  const btn = document.getElementById("summarize-btn");
-  const emailBtn = document.getElementById("email-speakers-btn");
-  const infoTooltip = document.querySelector(".info-tooltip");
+let summarizationProgressBarInterval = null;
 
+async function handleEmailBtnClick() {
+  const emailBtn = document.getElementById("email-speakers-btn");
+  const progressBar = document.getElementById("email-btn-progress");
+  const textSpan = emailBtn.querySelector(".btn-text");
+
+  // Case 1: Already summarized
   if (sessionStorage.getItem("isSummarized")) {
-    showToast("Transcript already summarized, Ready to send personalized emails!");
+    openEmailModal();
     return;
   }
 
-  btn.disabled = true;
-  btn.innerHTML = '✨ Summarizing...';
+  // Case 2: Start background summarization
+  emailBtn.disabled = true;
+  emailBtn.classList.add("is-summarizing");
+  textSpan.textContent = "✨ Preparing summaries...";
+  
+  let progress = 0;
+  if (progressBar) progressBar.style.width = "0%";
+
+  // Start simulated progress
+  summarizationProgressBarInterval = setInterval(() => {
+    if (progress < 90) {
+      // Faster at start, slower at end
+      const inc = progress < 40 ? 5 : (progress < 75 ? 2 : 1);
+      progress += inc;
+      if (progress > 90) progress = 90;
+      if (progressBar) progressBar.style.width = `${progress}%`;
+    }
+  }, 400);
 
   try {
     const response = await fetch("/summarize", { method: "POST" });
     const result = await response.json();
 
     if (result.success) {
-      sessionStorage.setItem("isSummarized", "true");
-      emailBtn.disabled = false;
-      if (infoTooltip) infoTooltip.classList.add("hidden");
-      showToast("Summary generated successfully!");
-      btn.innerHTML = '✨ Summarized';
+      // Complete the progress bar
+      if (summarizationProgressBarInterval) clearInterval(summarizationProgressBarInterval);
+      if (progressBar) progressBar.style.width = "100%";
+      textSpan.textContent = "✨ Success!";
+
+      // Small delay for smooth transition
+      setTimeout(() => {
+        sessionStorage.setItem("isSummarized", "true");
+        emailBtn.classList.remove("is-summarizing");
+        emailBtn.disabled = false;
+        textSpan.textContent = "Email Speakers";
+        if (progressBar) progressBar.style.width = "0%";
+        
+        openEmailModal();
+      }, 500);
+
     } else {
-      showToast("Summarization failed: " + result.error);
-      btn.innerHTML = '✨ Summarize';
-      btn.disabled = false;
+      throw new Error(result.error || "Summarization failed");
     }
+    
   } catch (err) {
-    showToast("Network error. Could not summarize.");
-    btn.innerHTML = '✨ Summarize';
-    btn.disabled = false;
+    if (summarizationProgressBarInterval) clearInterval(summarizationProgressBarInterval);
+    showToast("Error: " + err.message);
+    
+    // Reset button
+    emailBtn.classList.remove("is-summarizing");
+    emailBtn.disabled = false;
+    textSpan.textContent = "Email Speakers";
+    if (progressBar) progressBar.style.width = "0%";
   }
 }
 
