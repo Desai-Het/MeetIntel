@@ -72,13 +72,16 @@ def run_extraction(text: str) -> dict:
         max_char_buffer=8000
     )
 
-    # Save JSONL for visualization
+    # Save JSONL for visualization in /tmp (Vercel compatible)
     import os
-    os.makedirs("test_output", exist_ok=True)
-    lx.io.save_annotated_documents([result], output_name="transcript_extractions.jsonl")
+    out_dir = "/tmp" if os.name != "nt" else "test_output"
+    os.makedirs(out_dir, exist_ok=True)
+    jsonl_path = os.path.join(out_dir, "transcript_extractions.jsonl")
+    
+    lx.io.save_annotated_documents([result], output_name=jsonl_path)
 
     # Generate HTML visualization
-    html_content = lx.visualize("test_output/transcript_extractions.jsonl")
+    html_content = lx.visualize(jsonl_path)
 
     # Parse into structured buckets
     structured = _parse_extractions(result.extractions)
