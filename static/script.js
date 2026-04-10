@@ -126,6 +126,8 @@ function initIndexPage() {
     }
   });
 
+  let serverBusyTimeout = null;
+
   function setLoading(loading) {
     const btnText = analyzeBtn.querySelector(".btn-text");
     const btnSpinner = analyzeBtn.querySelector(".btn-spinner");
@@ -142,24 +144,40 @@ function initIndexPage() {
       if (progressSpan) progressSpan.textContent = ` 0%`;
       if (progressFill) progressFill.style.width = `0%`;
       
-      // Clear any existing interval
+      // Reset the spinner text to default "Analyzing"
+      btnSpinner.innerHTML = `<span class="spinner"></span> Analyzing<span class="progress-percent"> 0%</span>...`;
+      
+      // Clear any existing counters
       if (analysisProgressInterval) clearInterval(analysisProgressInterval);
+      if (serverBusyTimeout) clearTimeout(serverBusyTimeout);
       
       // Simulate progress up to 90%
       analysisProgressInterval = setInterval(() => {
         if (progress < 90) {
-          // Faster at start, slower as it gets higher
           const inc = progress < 50 ? 5 : (progress < 80 ? 2 : 1);
           progress += inc;
           if (progress > 90) progress = 90;
-          if (progressSpan) progressSpan.textContent = ` ${progress}%`;
+          const span = analyzeBtn.querySelector(".progress-percent");
+          if (span) span.textContent = ` ${progress}%`;
           if (progressFill) progressFill.style.width = `${progress}%`;
         }
       }, 400);
+
+      // New: Busy server message after 8 seconds
+      serverBusyTimeout = setTimeout(() => {
+        if (btnSpinner && !btnSpinner.hidden) {
+          btnSpinner.innerHTML = `<span class="spinner"></span> ✨ <b>Server is busy, this may take a while...</b><span class="progress-percent"> ${progress}%</span>`;
+        }
+      }, 8000);
+
     } else {
       if (analysisProgressInterval) {
         clearInterval(analysisProgressInterval);
         analysisProgressInterval = null;
+      }
+      if (serverBusyTimeout) {
+        clearTimeout(serverBusyTimeout);
+        serverBusyTimeout = null;
       }
       analyzeBtn.classList.remove("is-loading");
       if (progressFill) progressFill.style.width = `0%`;
