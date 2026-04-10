@@ -1,0 +1,14 @@
+{
+    "builds": [
+        {
+            "src": "MeetIntel_app.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "MeetIntel_app.py"
+        }
+    ]
+}
