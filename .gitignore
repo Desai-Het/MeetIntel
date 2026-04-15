@@ -1,3 +1,6 @@
 .env
 test_output
 __pycache__
+vercel_app.py
+vercel.json
+.agent
