@@ -1,17 +1,27 @@
-# Testing Practices
+# Testing Strategy - MeetIntel
 
 ## Current State
-The project currently has **no formal automated unit or integration test suite** (no `tests/` directory found in the root). This represents a significant gap in the development workflow.
+The project currently relies on **Manual Verification** and **Experimental Scripts** rather than a formal test suite.
 
-## Observed Patterns
-- **Manual Verification:** Developers likely run the application locally (`python run.py`) and perform manual end-to-end tests through the web interface.
-- **Log-based verification:** The `test_output/` directory contains artifacts like `transcript_extractions.jsonl`. These files serve as a form of manual debugging output to verify the quality of AI extractions.
-- **Demo Mode:** The presence of hardcoded demo fallback data (`get_demo_fallback_data` in `extraction_service.py`) suggests that UI development and integration testing often occur against static mocks when external APIs are unavailable or during rapid prototyping.
-- **Traceability:** There is limited traceability between specific inputs and their corresponding AI outputs beyond what is manually captured in `test_output`.
+## Verification Methods
 
-## Recommended Testing Strategy
-1. **Service Unit Tests:** Implement `pytest` suites for `extraction_service` and `summary_service`. Use `unittest.mock` to simulate OpenAI and Gemini API responses.
-2. **Route Integration Tests:** Utilize Flask's `test_client` to verify endpoint routing, session handling, and error response codes.
-3. **Prompt Evaluation:** Establish a "Golden Set" of transcripts with expected extractions to measure the performance and consistency of prompting logic as models evolve.
-4. **Email Service Mocks:** Test the `email_service` by mocking the `smtplib` connection to ensure correct email construction without sending real messages.
-5. **UI Testing:** Basic Selenium or Playwright tests could automate the manual flow of uploading a transcript and navigating to the results page.
+### 1. Experimental Runners
+- **`basic.py`**: A lightweight script to test `langextract` functionality on small strings.
+- **`advance.py`**: A complex runner that processes full literary works (e.g., Romeo & Juliet from Project Gutenberg) to stress-test the extraction logic.
+
+### 2. Manual UAT
+- Running `python run.py` and manually uploading transcripts to verify the Flask routes and frontend visualization.
+- Verification of JSON payloads via browser dev tools.
+
+### 3. Output Inspection
+- Checking `test_output/` for generated `.jsonl` files and `.html` visualizations.
+
+## Identified Gaps
+- **Unit Tests**: No `pytest` or `unittest` suite for individual services.
+- **Integration Tests**: No automated testing for the end-to-end flow from `/analyze` to `/send-emails`.
+- **Mocking**: External APIs (Gemini) are not currently mocked, leading to reliance on the demo fallback during local testing without keys.
+
+## Future Recommendations
+1. Implement `pytest` for `app/services/summary_service.py` (logic is deterministic).
+2. Create mocks for `langextract` to test `extraction_service.py` without hitting API limits.
+3. Add a `conftest.py` to handle Flask app context for route testing.

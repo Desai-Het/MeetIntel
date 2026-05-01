@@ -1,23 +1,29 @@
-# Coding Conventions
+# Coding Conventions - MeetIntel
+
+## General Principles
+- **Modularity**: Business logic must reside in `app/services/`, not in routes.
+- **Resilience**: All external API calls (especially Gemini) must use `tenacity` for retries.
+- **Graceful Degradation**: Always provide a fallback (like `get_demo_fallback_data`) for core features.
 
 ## Python Style
-- **Indentation:** 4 spaces (standard PEP 8).
-- **Naming:**
-  - Functions/Variables: `snake_case`.
-  - Constants: `UPPER_SNAKE_CASE` (e.g., `PROMPT`).
-  - Classes: `PascalCase`.
-- **Typing:** Use of type hints is present in newer service functions (e.g., `def run_extraction(text: str) -> dict`).
+- **Naming**: `snake_case` for functions/variables, `PascalCase` for classes.
+- **Type Hinting**: Use type hints for service function signatures (e.g., `text: str -> dict`).
+- **Docstrings**: While sparse in the current state, future code should prioritize Google-style docstrings.
 
-## Patterns & Practices
-- **Resilience:** Use of `tenacity` for retrying flaky API calls (OpenAI/Gemini).
-- **Fallbacks:** Demo-mode fallback logic for core services (`get_demo_fallback_data`) when APIs fail.
-- **Service Separation:** Business logic is isolated from web routes into dedicated service classes/modules.
-- **Configuration:** central `app/config.py` using `python-dotenv` for environment variable loading.
+## Web & API
+- **Responses**: Always return JSON with a `success: boolean` flag and appropriate data/error keys.
+- **Status Codes**:
+  - `200 OK`: Successful operation.
+  - `400 Bad Request`: Validation errors or missing input.
+  - `500 Internal Server Error`: Unhandled exceptions or API failures.
+- **Routing**: Use Flask Blueprints to group related functionality.
 
-## Error Handling
-- Routes use `try-except` blocks to return JSON error responses with appropriate HTTP status codes (400 for bad input, 500 for service failures).
-- Services use `try-except` to handle specific API failures and provide debug logging.
+## AI Extraction
+- **Prompting**: Use `textwrap.dedent` for multi-line prompts to maintain readability.
+- **Examples**: Always provide `ExampleData` to `langextract` to ensure high accuracy.
+- **Consistency**: Use exact text from inputs for extraction to avoid hallucination.
 
-## AI Prompt Management
-- Prompts are stored as large text block constants within the service files.
-- Example-based prompting (few-shot) is used for extraction reliability.
+## Development Workflow
+- **GSD Integration**: Use `gsd-` commands for planning and executing changes.
+- **Planning First**: Update `.planning/` before significant architectural changes.
+- **Ephemeral Data**: Use `/tmp` or `test_output/` for temporary files to ensure compatibility with serverless environments (Vercel).

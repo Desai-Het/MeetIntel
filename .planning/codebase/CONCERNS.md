@@ -1,17 +1,32 @@
-# Areas of Concern
+# Concerns & Technical Debt - MeetIntel
+
+## Critical Concerns
+
+### 1. API Rate Limiting & Reliability
+- **Issue**: The Gemini API can be brittle or hit rate limits during peak usage.
+- **Mitigation**: `tenacity` retries and `get_demo_fallback_data` are implemented, but a more robust queuing system might be needed for high-volume usage.
+
+### 2. State Management
+- **Issue**: Relying on Flask sessions for large extraction results can hit cookie size limits (4KB).
+- **Debt**: Current implementation filters `visualization_html` out of the session, but very long transcripts could still cause issues. A database (Redis/Postgres) would be a more stable solution.
+
+### 3. Deployment constraints
+- **Issue**: Vercel's serverless functions have a 10s timeout on the Hobby tier.
+- **Risk**: Large transcripts processed by `langextract` might exceed this limit.
 
 ## Technical Debt
-- **Missing Test Suite:** No automated tests for core logic or endpoints. This makes refactoring risky as there is no safety net for regressions.
-- **Minimal Documentation:** Many functions lack docstrings or detailed inline comments, increasing the cognitive load for new developers.
-- **Hardcoded File Paths:** Some parts of the code (e.g., `extraction_service.py`) use conditional paths (`/tmp` vs `test_output`) which might vary between environments in unexpected ways. This should be abstracted into the configuration.
 
-## Risks & Security
-- **API Key Exposure:** `.env` file contains sensitive keys. While included in `.gitignore`, care must be taken during deployments to ensure these aren't accidentally exposed.
-- **Cost & Latency:** Heavy reliance on external LLM APIs (OpenAI, Gemini) introduces external dependency risks, latency overhead, and potential costs that scale with usage.
-- **Large Transcripts:** The `max_char_buffer=8000` limit in `extraction_service.py` might truncate long meeting transcripts, leading to significant data loss for long sessions.
+### 1. Test Coverage
+- **Debt**: Zero formal unit or integration tests.
+- **Impact**: High risk of regressions during refactoring.
 
-## Fragile Areas
-- **AI Extraction Consistency:** LLM outputs can be non-deterministic. Changes to prompts or models might break the structure expected by `_parse_extractions`, leading to runtime errors.
-- **Email Delivery:** Relies on a single Gmail account and SMTP. This is prone to rate-limiting or authentication failures, especially with Google's changing policies on "less secure apps" and App Passwords.
-- **Session Management:** Storing raw extraction data and summaries in `flask.session` might hit cookie size limits (4KB) if the meeting data is large, unless a server-side session backend is configured.
-- **Concurrency:** The current extraction flow is synchronous; multiple large requests could block the gunicorn workers if not managed carefully.
+### 2. File I/O
+- **Debt**: Hardcoded `/tmp` and `test_output` paths.
+- **Impact**: Makes the code less portable across different environments without manual configuration.
+
+### 3. Security
+- **Debt**: `app.secret_key` is loaded from config, but there's no clear rotation strategy or CSRF protection on the `/send-emails` endpoint beyond standard session checks.
+
+### 4. Code Duplication
+- **Debt**: `advance.py` and `basic.py` contain duplicate prompt logic that differs slightly from `extraction_service.py`.
+- **Impact**: Divergence in behavior between development/testing and production.
