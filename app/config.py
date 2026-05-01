@@ -16,6 +16,11 @@ class Config:
     EMAIL_USER = os.getenv("EMAIL_USER")
     EMAIL_PASSWORD_RAW = os.getenv("EMAIL_PASSWORD", "")
     
+    # Supabase
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
     # Derived
     @property
     def EMAIL_PASSWORD(self):

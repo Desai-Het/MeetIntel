@@ -3,8 +3,27 @@ from flask import Blueprint, render_template, request, jsonify, session
 from app.services.extraction_service import run_extraction
 from app.services.summary_service import summary_service
 from app.services.email_service import email_service
+from app.database import supabase
 
 main_bp = Blueprint("main", __name__)
+
+@main_bp.route("/test-db")
+def test_db():
+    try:
+        data = {
+            "title": "Database Connection Test",
+            "transcript_text": "This is a test transcript for verifying Supabase integration.",
+            "metadata": {"test": True, "source": "gsd-agent"}
+        }
+        # Attempt to insert a dummy row into the 'meetings' table
+        response = supabase.table("meetings").insert(data).execute()
+        return jsonify({
+            "success": True, 
+            "message": "Successfully connected to Supabase and inserted test data.",
+            "data": response.data
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @main_bp.route("/")
 def index():
