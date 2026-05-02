@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — MeetIntel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=9" />
+</head>
+<body class="dashboard-page">
+
+  <div class="noise"></div>
+
+  <!-- ── HEADER ── -->
+  <header class="site-header">
+    <div class="logo">
+      <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:0.5rem;color:inherit">
+        <span class="logo-mark">◈</span>
+        <span class="logo-text">MeetIntel</span>
+      </a>
+    </div>
+    <div class="header-actions">
+      <a href="/" class="new-btn">+ New Analysis</a>
+      <a href="/logout" class="new-btn" style="color:var(--accent3)">Logout</a>
+    </div>
+  </header>
+
+  <!-- ── 3-COLUMN LAYOUT ── -->
+  <div class="db-layout">
+
+    <!-- LEFT: Meeting History Sidebar -->
+    <aside class="db-sidebar" id="db-sidebar">
+      <div class="db-sidebar-head">
+        <h3 class="db-sidebar-title">Meetings</h3>
+        <button class="db-sidebar-new-btn" title="New Analysis" onclick="window.location.href='/'">+</button>
+      </div>
+
+      <div class="db-sidebar-scroll">
+        <!-- Hosted -->
+        <div class="db-sidebar-section">
+          <h4 class="db-sidebar-label">Meetings Hosted</h4>
+          <ul class="db-meeting-list" id="meetings-hosted"></ul>
+        </div>
+
+        <!-- Attended -->
+        <div class="db-sidebar-section">
+          <h4 class="db-sidebar-label">Meetings Attended</h4>
+          <ul class="db-meeting-list" id="meetings-attended"></ul>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: Analysis View -->
+    <main class="db-center" id="db-center">
+
+      <!-- Empty state (default) -->
+      <div class="db-empty-state" id="db-empty-state">
+        <div class="db-empty-icon">◈</div>
+        <h2 class="db-empty-title">Select a meeting to view analysis</h2>
+        <p class="db-empty-sub">Choose from your history on the left, or <a href="/">analyze a new transcript</a>.</p>
+      </div>
+
+      <!-- Active meeting analysis (hidden by default) -->
+      <div class="db-analysis" id="db-analysis" hidden>
+
+        <div class="db-analysis-header">
+          <h2 class="db-analysis-meeting-title" id="db-analysis-title">—</h2>
+          <div class="db-analysis-meta" id="db-analysis-meta"></div>
+        </div>
+
+        <!-- Reuses the exact results-layout structure -->
+        <div class="db-analysis-body">
+
+          <div class="db-analysis-left">
+            <section class="dash-section">
+              <h2 class="section-title"><span class="section-icon">🎤</span> Speakers</h2>
+              <div class="speakers-grid" id="db-speakers-grid"></div>
+              <div class="speaker-actions-footer">
+                <button class="email-speakers-btn" id="db-email-speakers-btn">
+                  <div class="btn-progress-fill" id="db-email-btn-progress"></div>
+                  <span class="btn-text">Email Speakers</span>
+                </button>
+              </div>
+              <div class="section-divider"></div>
+            </section>
+
+            <section class="dash-section">
+              <h2 class="section-title"><span class="section-icon">💡</span> Key Topics</h2>
+              <div class="topics-wrap" id="db-topics-wrap"></div>
+              <div class="section-divider"></div>
+            </section>
+
+            <section class="dash-section">
+              <h2 class="section-title"><span class="section-icon">✅</span> Decisions Made</h2>
+              <div class="decision-list" id="db-decision-list"></div>
+              <div class="section-divider"></div>
+            </section>
+
+            <section class="dash-section">
+              <h2 class="section-title"><span class="section-icon">📋</span> Action Items</h2>
+              <div class="action-table-wrap">
+                <table class="action-table" id="db-action-table">
+                  <thead>
+                    <tr><th>#</th><th>Task</th><th>Owner</th><th>Deadline</th></tr>
+                  </thead>
+                  <tbody id="db-action-tbody"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <div class="db-analysis-right">
+            <div class="viz-panel" id="db-viz-panel">
+              <div class="viz-header">
+                <h2 class="section-title" style="margin:0"><span class="section-icon">🔍</span> Highlighted Transcript</h2>
+                <div class="viz-legend">
+                  <span class="legend-dot speaker-dot"></span>speaker
+                  <span class="legend-dot topic-dot"></span>decision
+                  <span class="legend-dot decision-dot"></span>action item
+                  <span class="legend-dot action-dot"></span>topic
+                </div>
+              </div>
+              <iframe id="db-viz-frame" class="viz-frame"
+                srcdoc="<p style='padding:2rem;color:#888;font-family:sans-serif'>Select a meeting to view its highlighted transcript.</p>"></iframe>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- RIGHT: Pending Action Items -->
+    <aside class="db-actions-panel" id="db-actions-panel">
+      <div class="db-actions-head">
+        <h3 class="db-sidebar-title">Pending Action Items</h3>
+        <span class="db-actions-count" id="db-actions-count">0</span>
+      </div>
+      <div class="db-actions-scroll" id="db-actions-list">
+        <!-- Populated by JS -->
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Info Modal -->
+  <div class="modal-overlay" id="info-modal-overlay" hidden>
+    <div class="email-modal" style="max-width:380px">
+      <div class="modal-header">
+        <h3>Meeting Info</h3>
+        <button class="close-modal" id="close-info-modal">&times;</button>
+      </div>
+      <div id="info-modal-body" style="font-size:0.88rem;color:var(--text-muted);line-height:1.8"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="/static/dashboard.js?v=1"></script>
+</body>
+</html>

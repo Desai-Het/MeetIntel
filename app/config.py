@@ -5,6 +5,7 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", os.urandom(24))
+    DEV_MODE = os.getenv("DEV_MODE", "false").lower() == "true"
     
     # API Keys
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

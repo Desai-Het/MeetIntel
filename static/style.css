@@ -1096,3 +1096,475 @@ body.results-page {
     transform: translate(-50%, 0);
   }
 }
+
+
+/* ============================================================
+   DASHBOARD PAGE
+   ============================================================ */
+
+body.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 3-Column Layout */
+.db-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 300px;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ---- LEFT SIDEBAR ---- */
+.db-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.db-sidebar-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.db-sidebar-title {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.db-sidebar-new-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.db-sidebar-new-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.db-sidebar-scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.5rem 0;
+}
+
+.db-sidebar-section {
+  margin-bottom: 0.5rem;
+}
+
+.db-sidebar-label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0.75rem 1.25rem 0.35rem;
+}
+
+/* Meeting list items */
+.db-meeting-list {
+  list-style: none;
+}
+
+.db-meeting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+  gap: 0.4rem;
+}
+
+.db-meeting-item:hover {
+  background: var(--surface2);
+}
+
+.db-meeting-item.active {
+  background: var(--surface2);
+  border-right: 2px solid var(--accent);
+}
+
+.db-meeting-content {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.db-star {
+  color: var(--accent);
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.db-meeting-name {
+  font-size: 0.85rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-meeting-menu-btn {
+  opacity: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  transition: opacity 0.15s, background 0.15s;
+  flex-shrink: 0;
+  letter-spacing: 2px;
+}
+
+.db-meeting-item:hover .db-meeting-menu-btn {
+  opacity: 1;
+}
+
+.db-meeting-menu-btn:hover {
+  background: var(--border);
+}
+
+/* Dropdown menu */
+.db-meeting-menu {
+  position: absolute;
+  top: 100%;
+  right: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  min-width: 160px;
+  padding: 0.3rem 0;
+  animation: fadeUp 0.15s ease;
+}
+
+.db-meeting-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.db-meeting-menu button:hover {
+  background: var(--surface2);
+}
+
+.db-menu-danger {
+  color: var(--accent3) !important;
+}
+
+
+/* ---- CENTER PANEL ---- */
+.db-center {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty state */
+.db-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 3rem;
+}
+
+.db-empty-icon {
+  font-size: 3rem;
+  color: var(--accent-dim);
+  opacity: 0.5;
+}
+
+.db-empty-title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  color: var(--text);
+  text-align: center;
+}
+
+.db-empty-sub {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.db-empty-sub a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.db-empty-sub a:hover {
+  opacity: 0.8;
+}
+
+/* Analysis header */
+.db-analysis-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.db-analysis-meeting-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.db-analysis-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* Analysis body: 2-col inside center */
+.db-analysis-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  overflow: hidden;
+}
+
+.db-analysis-left {
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border-right: 1px solid var(--border);
+}
+
+.db-analysis-right {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.db-analysis-right .viz-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: none;
+}
+
+.db-analysis-right .viz-frame {
+  flex: 1;
+  min-height: 0;
+}
+
+
+/* ---- RIGHT PANEL: PENDING ACTIONS ---- */
+.db-actions-panel {
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.db-actions-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.db-actions-count {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15rem 0.55rem;
+  border-radius: 20px;
+  min-width: 1.4rem;
+  text-align: center;
+}
+
+.db-actions-scroll {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.5rem 0;
+}
+
+/* Action card */
+.db-action-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.4s ease;
+}
+
+.db-action-card:last-child {
+  border-bottom: none;
+}
+
+.db-action-card.completing {
+  opacity: 0.4;
+}
+
+.db-action-card.completing .db-action-task {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+/* Custom checkbox */
+.db-action-check {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.db-action-check input {
+  opacity: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.db-action-checkmark {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: var(--surface2);
+}
+
+.db-action-check input:checked + .db-action-checkmark {
+  background: var(--accent2);
+  border-color: var(--accent2);
+}
+
+.db-action-check input:checked + .db-action-checkmark::after {
+  content: "✓";
+  color: #0f0e0d;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.db-action-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.db-action-task {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.db-action-from {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.db-action-meeting {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 1200px) {
+  .db-layout {
+    grid-template-columns: 220px 1fr 260px;
+  }
+}
+
+@media (max-width: 900px) {
+  .db-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    height: auto;
+    overflow: auto;
+  }
+
+  body.dashboard-page {
+    overflow: auto;
+    height: auto;
+  }
+
+  .db-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 300px;
+  }
+
+  .db-actions-panel {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    max-height: 400px;
+  }
+
+  .db-analysis-body {
+    grid-template-columns: 1fr;
+  }
+
+  .db-analysis-left {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}

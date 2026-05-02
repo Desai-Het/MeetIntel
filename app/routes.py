@@ -11,9 +11,7 @@ main_bp = Blueprint("main", __name__)
 def test_db():
     try:
         data = {
-            "title": "Database Connection Test",
-            "transcript_text": "This is a test transcript for verifying Supabase integration.",
-            "metadata": {"test": True, "source": "gsd-agent"}
+            "title": "Database Connection Test"
         }
         # Attempt to insert a dummy row into the 'meetings' table
         response = supabase.table("meetings").insert(data).execute()
@@ -29,9 +27,17 @@ def test_db():
 def index():
     return render_template("index.html")
 
+from app.auth import login_required
+
 @main_bp.route("/results")
+@login_required
 def results():
     return render_template("results.html")
+
+@main_bp.route("/dashboard")
+@login_required
+def dashboard():
+    return render_template("dashboard.html")
 
 @main_bp.route("/analyze", methods=["POST"])
 def analyze():

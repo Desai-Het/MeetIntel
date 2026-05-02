@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - MeetIntel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=8" />
+  <style>
+    .auth-container { 
+        max-width: 420px; 
+        margin: 10vh auto; 
+        padding: 0 1.5rem;
+    }
+    .auth-card {
+        padding: 2.5rem;
+    }
+    .auth-form { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 1.25rem; 
+    }
+    .auth-form .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    .auth-form input[type="email"],
+    .auth-form input[type="password"],
+    .auth-form input[type="text"] { 
+        padding: 0.85rem 1rem; 
+        border-radius: 8px; 
+        border: 1px solid var(--border-light); 
+        background: var(--surface2); 
+        color: var(--text); 
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+        outline: none;
+    }
+    .auth-form input:focus {
+        border-color: var(--accent-dim);
+    }
+    .auth-form label { 
+        font-size: 0.85rem; 
+        color: var(--text-muted); 
+        font-family: var(--font-mono);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+    .auth-title {
+        font-family: var(--font-display);
+        font-size: 2.4rem;
+        color: var(--text);
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .auth-links { 
+        margin-top: 1.5rem; 
+        text-align: center; 
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    .auth-links a { 
+        color: var(--accent); 
+        text-decoration: none; 
+        transition: opacity 0.2s;
+    }
+    .auth-links a:hover {
+        opacity: 0.8;
+    }
+    .show-pwd-wrapper { 
+        display: flex; 
+        align-items: center; 
+        gap: 8px; 
+        font-size: 0.85rem; 
+        color: var(--text-muted); 
+    }
+    .show-pwd-wrapper input { 
+        margin: 0; 
+        cursor: pointer;
+    }
+    .show-pwd-wrapper label {
+        margin: 0;
+        text-transform: none;
+        letter-spacing: normal;
+        font-family: var(--font-body);
+        cursor: pointer;
+    }
+    .auth-btn {
+        margin: 1rem 0 0 0;
+        width: 100%;
+        padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="site-header">
+    <div class="logo">
+      <span class="logo-mark">◈</span>
+      <span class="logo-text">MeetIntel</span>
+    </div>
+  </header>
+  <main class="auth-container">
+    <div class="input-card auth-card">
+      <h2 class="auth-title">Login</h2>
+      {% if error %}
+      <div class="error-box" style="display:block;margin:0 0 1.5rem 0;">{{ error }}</div>
+      {% endif %}
+      <form class="auth-form" method="POST" action="/login">
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="you@example.com" />
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" name="password" id="password" required placeholder="••••••••" />
+        </div>
+        <div class="show-pwd-wrapper">
+            <input type="checkbox" id="show-pwd" onclick="document.getElementById('password').type = this.checked ? 'text' : 'password'">
+            <label for="show-pwd">Show Password</label>
+        </div>
+        <button type="submit" class="analyze-btn auth-btn">
+            <span class="btn-text">Log In</span>
+        </button>
+      </form>
+      <div class="auth-links">
+        Don't have an account? <a href="/signup">Sign up</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
