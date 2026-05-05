@@ -186,6 +186,7 @@ const DUMMY_MEETINGS = {
 
 let allMeetings = [];
 let activeMeetingId = null;
+let pendingDeleteId = null; // Track meeting to be deleted
 
 function initDashboard() {
   // Flatten for easy lookup
@@ -206,6 +207,25 @@ function initDashboard() {
       document.getElementById("info-modal-overlay").classList.remove("show");
     }
   });
+
+  // Delete modal listeners
+  document.getElementById("close-delete-modal").addEventListener("click", closeDeleteModal);
+  document.getElementById("cancel-delete-btn").addEventListener("click", closeDeleteModal);
+  document.getElementById("confirm-delete-btn").addEventListener("click", confirmDelete);
+  document.getElementById("delete-modal-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "delete-modal-overlay") closeDeleteModal();
+  });
+
+  // Header Pending Actions button — toggle right panel
+  const headerActionsBtn = document.getElementById("header-pending-actions-btn");
+  if (headerActionsBtn) {
+    headerActionsBtn.addEventListener("click", () => {
+      const layout = document.querySelector(".db-layout");
+      if (layout) {
+        layout.classList.toggle("actions-open");
+      }
+    });
+  }
 }
 
 
@@ -260,23 +280,54 @@ document.addEventListener("click", (e) => {
 
 
 function renameMeeting(id) {
+  const meetingItem = document.querySelector(`.db-meeting-item[data-id="${id}"]`);
+  const nameSpan = meetingItem?.querySelector(".db-meeting-name");
   const meeting = allMeetings.find(m => m.id === id);
-  if (!meeting) return;
-  const newTitle = prompt("Rename meeting:", meeting.title);
-  if (newTitle && newTitle.trim()) {
-    meeting.title = newTitle.trim();
-    // Update in source arrays too
-    const src = meeting.section === "hosted" ? DUMMY_MEETINGS.hosted : DUMMY_MEETINGS.attended;
-    const srcItem = src.find(m => m.id === id);
-    if (srcItem) srcItem.title = meeting.title;
+  
+  if (!nameSpan || !meeting) return;
 
-    renderSidebar();
-    highlightActive();
-    if (activeMeetingId === id) {
-      document.getElementById("db-analysis-title").textContent = meeting.title;
-    }
-  }
+  const currentTitle = meeting.title;
+  
+  // Hide menus
   document.querySelectorAll(".db-meeting-menu").forEach(m => m.hidden = true);
+
+  // Create inline input
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "db-meeting-rename-input";
+  input.value = currentTitle;
+
+  // Swap span for input
+  nameSpan.style.display = "none";
+  nameSpan.parentNode.insertBefore(input, nameSpan);
+  
+  input.focus();
+  input.select();
+
+  const finishRename = (save) => {
+    const newTitle = input.value.trim();
+    if (save && newTitle && newTitle !== currentTitle) {
+      meeting.title = newTitle;
+      const src = meeting.section === "hosted" ? DUMMY_MEETINGS.hosted : DUMMY_MEETINGS.attended;
+      const srcItem = src.find(m => m.id === id);
+      if (srcItem) srcItem.title = newTitle;
+      
+      nameSpan.textContent = newTitle;
+      if (activeMeetingId === id) {
+        document.getElementById("db-analysis-title").textContent = newTitle;
+      }
+    }
+    
+    input.remove();
+    nameSpan.style.display = "";
+  };
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") finishRename(true);
+    if (e.key === "Escape") finishRename(false);
+  });
+
+  input.addEventListener("blur", () => finishRename(true));
 }
 
 function toggleImportant(id) {
@@ -293,9 +344,30 @@ function toggleImportant(id) {
 }
 
 function deleteMeeting(id) {
-  if (!confirm("Delete this meeting?")) return;
   const meeting = allMeetings.find(m => m.id === id);
   if (!meeting) return;
+
+  pendingDeleteId = id;
+  document.getElementById("delete-meeting-name").textContent = meeting.title;
+  document.getElementById("delete-modal-overlay").classList.add("show");
+  
+  // Close menu
+  document.querySelectorAll(".db-meeting-menu").forEach(m => m.hidden = true);
+}
+
+function closeDeleteModal() {
+  document.getElementById("delete-modal-overlay").classList.remove("show");
+  pendingDeleteId = null;
+}
+
+function confirmDelete() {
+  if (!pendingDeleteId) return;
+  const id = pendingDeleteId;
+  const meeting = allMeetings.find(m => m.id === id);
+  if (!meeting) {
+    closeDeleteModal();
+    return;
+  }
 
   const src = meeting.section === "hosted" ? DUMMY_MEETINGS.hosted : DUMMY_MEETINGS.attended;
   const idx = src.findIndex(m => m.id === id);
@@ -311,23 +383,45 @@ function deleteMeeting(id) {
 
   renderSidebar();
   renderPendingActions();
-  document.querySelectorAll(".db-meeting-menu").forEach(m => m.hidden = true);
+  closeDeleteModal();
 }
 
 function showMeetingInfo(id) {
   const meeting = allMeetings.find(m => m.id === id);
   if (!meeting) return;
+  
   const dur = meeting.duration_seconds;
-  const mins = Math.floor(dur / 60);
+  const hrs = Math.floor(dur / 3600);
+  const mins = Math.floor((dur % 3600) / 60);
+  const durationStr = hrs > 0 ? `${hrs}h ${mins}m` : `${mins} min`;
 
   const body = document.getElementById("info-modal-body");
   body.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:0.6rem;">
-      <div><span style="color:var(--text-dim)">Title:</span> <strong style="color:var(--text)">${escHtml(meeting.title)}</strong></div>
-      <div><span style="color:var(--text-dim)">Date:</span> <span style="color:var(--text)">${meeting.date}</span></div>
-      <div><span style="color:var(--text-dim)">Platform:</span> <span style="color:var(--text)">${escHtml(meeting.platform)}</span></div>
-      <div><span style="color:var(--text-dim)">Attendees:</span> <span style="color:var(--text)">${meeting.attendee_count}</span></div>
-      <div><span style="color:var(--text-dim)">Duration:</span> <span style="color:var(--text)">${mins} min</span></div>
+    <div class="info-modal-grid">
+      <div class="info-modal-item">
+        <label>Meeting Title</label>
+        <div class="info-modal-value title-value">${escHtml(meeting.title)}</div>
+      </div>
+      <div class="info-modal-row">
+        <div class="info-modal-item">
+          <label>Date</label>
+          <div class="info-modal-value">${meeting.date}</div>
+        </div>
+        <div class="info-modal-item">
+          <label>Platform</label>
+          <div class="info-modal-value">${escHtml(meeting.platform)}</div>
+        </div>
+      </div>
+      <div class="info-modal-row">
+        <div class="info-modal-item">
+          <label>Attendee Count</label>
+          <div class="info-modal-value">${meeting.attendee_count} participants</div>
+        </div>
+        <div class="info-modal-item">
+          <label>Duration</label>
+          <div class="info-modal-value">${durationStr}</div>
+        </div>
+      </div>
     </div>
   `;
   document.getElementById("info-modal-overlay").classList.add("show");
@@ -463,67 +557,158 @@ function renderPendingActions() {
   const container = document.getElementById("db-actions-list");
   const countBadge = document.getElementById("db-actions-count");
 
-  // Gather all action items from all meetings
-  const pending = [];
+  // Group action items by meeting
+  const grouped = {};
+  let totalCount = 0;
+
   allMeetings.forEach(m => {
-    (m.analysis.action_items || []).forEach(item => {
-      pending.push({
-        ...item,
-        meetingId: m.id,
-        meetingTitle: m.title
-      });
-    });
+    const items = m.analysis.action_items || [];
+    if (items.length > 0) {
+      grouped[m.id] = {
+        title: m.title,
+        items: items.map(item => ({
+          ...item,
+          meetingId: m.id,
+          meetingTitle: m.title
+        }))
+      };
+      totalCount += items.length;
+    }
   });
 
-  countBadge.textContent = pending.length;
+  countBadge.textContent = totalCount;
 
-  if (!pending.length) {
+  if (totalCount === 0) {
     container.innerHTML = '<p class="empty-state" style="padding:1rem;text-align:center">No pending action items 🎉</p>';
     return;
   }
 
-  container.innerHTML = pending.map((item, i) => `
-    <div class="db-action-card" id="action-card-${i}">
-      <label class="db-action-check">
-        <input type="checkbox" onchange="completeAction(${i}, this)">
-        <span class="db-action-checkmark"></span>
-      </label>
-      <div class="db-action-info">
-        <div class="db-action-task">${escHtml(item.text)}</div>
-        <div class="db-action-from">
-          <span class="owner-tag">${escHtml(item.owner)}</span>
-          <span class="db-action-meeting">${escHtml(item.meetingTitle)}</span>
+  let globalIdx = 0;
+  container.innerHTML = Object.keys(grouped).map(meetingId => {
+    const group = grouped[meetingId];
+    return `
+      <div class="db-action-group" id="group-${meetingId}">
+        <div class="db-action-group-header" onclick="toggleActionGroup('${meetingId}')">
+          <span class="db-action-group-title">${escHtml(group.title)}</span>
+          <span class="db-action-group-arrow">^</span>
+        </div>
+        <div class="db-action-group-content" id="content-${meetingId}">
+          ${group.items.map(item => {
+            const id = `action-card-${globalIdx++}`;
+            return `
+              <div class="db-action-card" id="${id}">
+                <label class="db-action-check">
+                  <input type="checkbox" onchange="completeAction('${id}', this)">
+                  <span class="db-action-checkmark"></span>
+                </label>
+                <div class="db-action-info">
+                  <div class="db-action-task">${escHtml(item.text)}</div>
+                  <div class="db-action-from">
+                    <span class="owner-tag">${escHtml(item.owner)}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
         </div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 }
 
-function completeAction(index, checkbox) {
-  const card = document.getElementById(`action-card-${index}`);
+function toggleActionGroup(meetingId) {
+  const group = document.getElementById(`group-${meetingId}`);
+  if (group) {
+    group.classList.toggle("collapsed");
+  }
+}
+
+function completeAction(cardId, checkbox) {
+  const card = document.getElementById(cardId);
   if (!card) return;
+  
+  // Save original content and styles for undo
+  const originalHtml = card.innerHTML;
+  const originalClasses = card.className;
+  
+  // Phase 1: Cross-fade to Undo state
+  card.style.height = card.offsetHeight + "px"; // Lock height for transition
   card.classList.add("completing");
 
   setTimeout(() => {
-    card.style.height = card.offsetHeight + "px";
-    card.offsetHeight; // force reflow
-    card.style.height = "0";
-    card.style.opacity = "0";
-    card.style.padding = "0";
-    card.style.margin = "0";
-    card.style.overflow = "hidden";
+    // Phase 2: Switch content while faded out
+    card.innerHTML = `
+      <div class="db-undo-row">
+        <span>Task completed</span>
+        <button class="db-undo-btn" onclick="undoAction('${cardId}')">Undo</button>
+        <div class="db-undo-progress"></div>
+      </div>
+    `;
+    card.className = "db-action-card undo-active";
+    
+    // Phase 3: Animate to undo height and fade in
+    card.style.height = "44px"; // Standard compact undo height
+    card.style.opacity = "1";
 
-    setTimeout(() => {
-      card.remove();
-      // Update count
-      const remaining = document.querySelectorAll(".db-action-card:not(.completing)").length;
-      document.getElementById("db-actions-count").textContent = remaining;
-      if (remaining === 0) {
-        document.getElementById("db-actions-list").innerHTML = 
-          '<p class="empty-state" style="padding:1rem;text-align:center">All caught up! 🎉</p>';
+    // Store original data
+    card._originalHtml = originalHtml;
+    card._originalClasses = originalClasses;
+
+    // Phase 4: Permanent removal timer
+    const undoTimeout = setTimeout(() => {
+      if (card.parentNode) {
+        card.style.height = "0";
+        card.style.opacity = "0";
+        card.style.padding = "0";
+        card.style.border = "0";
+        
+        setTimeout(() => {
+          if (card.parentNode) {
+            const currentGroup = card.parentElement;
+            card.remove();
+            
+            if (currentGroup && currentGroup.querySelectorAll(".db-action-card").length === 0) {
+              const group = currentGroup.parentElement;
+              if (group) group.remove();
+            }
+
+            const remaining = document.querySelectorAll(".db-action-card:not(.undo-active)").length;
+            document.getElementById("db-actions-count").textContent = remaining;
+
+            if (remaining === 0) {
+              document.getElementById("db-actions-list").innerHTML = 
+                '<p class="empty-state" style="padding:1rem;text-align:center">All caught up! 🎉</p>';
+            }
+          }
+        }, 400);
       }
-    }, 400);
-  }, 600);
+    }, 3000);
+
+    card._undoTimeout = undoTimeout;
+  }, 300);
+}
+
+function undoAction(cardId) {
+  const card = document.getElementById(cardId);
+  if (!card || !card._originalHtml) return;
+
+  clearTimeout(card._undoTimeout);
+
+  card.style.opacity = "0";
+  
+  setTimeout(() => {
+    card.innerHTML = card._originalHtml;
+    card.className = card._originalClasses;
+    card.classList.remove("completing");
+    card.style.height = "auto";
+    card.style.opacity = "1";
+    
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    if (checkbox) checkbox.checked = false;
+
+    const remaining = document.querySelectorAll(".db-action-card:not(.undo-active)").length;
+    document.getElementById("db-actions-count").textContent = remaining;
+  }, 200);
 }
 
 

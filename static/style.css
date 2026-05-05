@@ -13,6 +13,7 @@
   --text-muted: #8a8070;
   --text-dim: #504840;
   --accent: #d4a853;
+  --accent-rgb: 212, 168, 83;
   --accent-dim: #8a6a2a;
   --accent2: #7eb8a4;
   --accent3: #c17a6a;
@@ -998,6 +999,41 @@ body.results-page {
   letter-spacing: 0.05em;
 }
 
+/* Info Modal Grid */
+.info-modal-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.info-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.info-modal-item label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.35rem;
+  letter-spacing: 0.05em;
+}
+
+.info-modal-value {
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.info-modal-value.title-value {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--accent2);
+}
+
 .close-modal {
   background: none;
   border: none;
@@ -1109,12 +1145,21 @@ body.dashboard-page {
   overflow: hidden;
 }
 
+body.dashboard-page [hidden] {
+  display: none !important;
+}
+
 /* 3-Column Layout */
 .db-layout {
-  display: grid;
-  grid-template-columns: 260px 1fr 300px;
+  display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+/* Sidebar fixed width */
+.db-sidebar {
+  width: 260px;
+  min-width: 260px;
 }
 
 /* ---- LEFT SIDEBAR ---- */
@@ -1231,6 +1276,18 @@ body.dashboard-page {
   text-overflow: ellipsis;
 }
 
+.db-meeting-rename-input {
+  background: var(--surface2);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  width: 100%;
+  outline: none;
+}
+
 .db-meeting-menu-btn {
   opacity: 0;
   background: none;
@@ -1291,8 +1348,53 @@ body.dashboard-page {
 }
 
 
+.db-cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.db-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.db-delete-confirm-btn {
+  background: #ff4d4d;
+  border: none;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.db-delete-confirm-btn:hover {
+  background: #ff3333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 77, 77, 0.3);
+}
+.db-delete-confirm-btn:active {
+  transform: translateY(0);
+}
+
+.delete-highlight {
+  color: var(--accent);
+  font-weight: 500;
+  padding: 0 0.2rem;
+}
+
 /* ---- CENTER PANEL ---- */
 .db-center {
+  flex: 1;
+  min-width: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1404,6 +1506,18 @@ body.dashboard-page {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              min-width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease 0.15s;
+}
+
+.db-layout.actions-open .db-actions-panel {
+  width: 300px;
+  min-width: 300px;
+  opacity: 1;
 }
 
 .db-actions-head {
@@ -1433,18 +1547,122 @@ body.dashboard-page {
   padding: 0.5rem 0;
 }
 
-/* Action card */
+/* Action group */
+.db-action-group {
+  border-bottom: 1px solid var(--border);
+}
+
+.db-action-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.db-action-group-header:hover {
+  background: var(--surface2);
+}
+
+.db-action-group-title {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+.db-action-group-arrow {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--text-dim);
+  transition: transform 0.3s ease;
+  transform: rotate(180deg); /* Default inverted ^ */
+  display: inline-block;
+  line-height: 1;
+}
+
+.db-action-group.collapsed .db-action-group-arrow {
+  transform: rotate(0deg);
+}
+
+.db-action-group-content {
+  overflow: hidden;
+  max-height: 1000px;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.db-action-group.collapsed .db-action-group-content {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Action card inside group */
 .db-action-card {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 1.25rem 0.85rem 2rem; /* Indent */
+  border-bottom: 1px solid var(--border-light);
   transition: all 0.4s ease;
+  background: rgba(255,255,255,0.02);
 }
 
-.db-action-card:last-child {
-  border-bottom: none;
+/* Undo Row */
+.db-undo-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  position: relative;
+  overflow: hidden;
+}
+
+.db-undo-btn {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.db-undo-btn:hover {
+  background: var(--accent);
+  color: #0f0e0d;
+}
+
+.db-undo-progress {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  width: 100%;
+  animation: undoTimer 3s linear forwards;
+}
+
+@keyframes undoTimer {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+.db-action-card.undo-active {
+  background: rgba(var(--accent-rgb), 0.05);
+  border-left: 2px solid var(--accent);
+  padding-left: 1.85rem !important; /* Slightly less indent for undo row */
 }
 
 .db-action-card.completing {
@@ -1529,7 +1747,7 @@ body.dashboard-page {
 
 /* ---- RESPONSIVE ---- */
 @media (max-width: 1200px) {
-  .db-layout {
+  .db-layout.actions-open {
     grid-template-columns: 220px 1fr 260px;
   }
 }

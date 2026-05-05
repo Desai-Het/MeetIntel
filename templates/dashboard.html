@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — MeetIntel</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css?v=9" />
 </head>
+
 <body class="dashboard-page">
 
   <div class="noise"></div>
@@ -21,6 +25,7 @@
       </a>
     </div>
     <div class="header-actions">
+      <button id="header-pending-actions-btn" class="new-btn" style="color:var(--accent)">Pending Actions</button>
       <a href="/" class="new-btn">+ New Analysis</a>
       <a href="/logout" class="new-btn" style="color:var(--accent3)">Logout</a>
     </div>
@@ -58,7 +63,7 @@
       <div class="db-empty-state" id="db-empty-state">
         <div class="db-empty-icon">◈</div>
         <h2 class="db-empty-title">Select a meeting to view analysis</h2>
-        <p class="db-empty-sub">Choose from your history on the left, or <a href="/">analyze a new transcript</a>.</p>
+        <p class="db-empty-sub">Choose from your history, or <a href="/">Analyze a new transcript</a>.</p>
       </div>
 
       <!-- Active meeting analysis (hidden by default) -->
@@ -102,7 +107,12 @@
               <div class="action-table-wrap">
                 <table class="action-table" id="db-action-table">
                   <thead>
-                    <tr><th>#</th><th>Task</th><th>Owner</th><th>Deadline</th></tr>
+                    <tr>
+                      <th>#</th>
+                      <th>Task</th>
+                      <th>Owner</th>
+                      <th>Deadline</th>
+                    </tr>
                   </thead>
                   <tbody id="db-action-tbody"></tbody>
                 </table>
@@ -113,7 +123,8 @@
           <div class="db-analysis-right">
             <div class="viz-panel" id="db-viz-panel">
               <div class="viz-header">
-                <h2 class="section-title" style="margin:0"><span class="section-icon">🔍</span> Highlighted Transcript</h2>
+                <h2 class="section-title" style="margin:0"><span class="section-icon">🔍</span> Highlighted Transcript
+                </h2>
                 <div class="viz-legend">
                   <span class="legend-dot speaker-dot"></span>speaker
                   <span class="legend-dot topic-dot"></span>decision
@@ -144,8 +155,8 @@
   </div>
 
   <!-- Info Modal -->
-  <div class="modal-overlay" id="info-modal-overlay" hidden>
-    <div class="email-modal" style="max-width:380px">
+  <div class="modal-overlay" id="info-modal-overlay">
+    <div class="email-modal" style="max-width:400px">
       <div class="modal-header">
         <h3>Meeting Info</h3>
         <button class="close-modal" id="close-info-modal">&times;</button>
@@ -154,9 +165,29 @@
     </div>
   </div>
 
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-modal-overlay">
+    <div class="email-modal" style="max-width:360px">
+      <div class="modal-header">
+        <h3 style="color:var(--accent2)">Delete Meeting</h3>
+        <button class="close-modal" id="close-delete-modal">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 0.5rem 0 0;">
+        <p style="color:var(--text-muted); font-size:1rem; margin-bottom: 1.25rem; font-family: var(--font-display); line-height: 1.4;">
+          Confirm delete <span id="delete-meeting-name" class="delete-highlight"></span>?
+        </p>
+        <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+          <button class="db-cancel-btn" id="cancel-delete-btn" style="padding: 0.5rem 1rem;">Cancel</button>
+          <button class="db-delete-confirm-btn" id="confirm-delete-btn" style="padding: 0.5rem 1rem;">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="toast" hidden></div>
 
   <script src="/static/dashboard.js?v=1"></script>
 </body>
+
 </html>

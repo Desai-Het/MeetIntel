@@ -48,7 +48,7 @@ def _attempt_extraction(text):
         text_or_documents=text,
         prompt_description=PROMPT,
         examples=EXAMPLES,
-        model_id="gemini-1.5-flash-latest",
+        model_id="gpt-4o-mini",
         extraction_passes=1,
         max_workers=1,
         max_char_buffer=8000
@@ -59,6 +59,9 @@ def run_extraction(text: str) -> dict:
         result = _attempt_extraction(text)
         is_demo = False
     except Exception as e:
+        import traceback
+        with open("extraction_error.log", "w", encoding="utf-8") as f:
+            f.write(traceback.format_exc())
         print(f"DEBUG: Extraction failed, using Demo Fallback. Error: {e}")
         return get_demo_fallback_data()
 
@@ -66,7 +69,7 @@ def run_extraction(text: str) -> dict:
     out_dir = "/tmp" if os.name != "nt" else "test_output"
     os.makedirs(out_dir, exist_ok=True)
     jsonl_path = os.path.join(out_dir, "transcript_extractions.jsonl")
-    lx.io.save_annotated_documents([result], output_name=jsonl_path)
+    lx.io.save_annotated_documents([result], output_dir=out_dir, output_name="transcript_extractions.jsonl")
     
     html_content = lx.visualize(jsonl_path)
     structured = _parse_extractions(result.extractions)
